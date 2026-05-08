@@ -1,0 +1,17 @@
+build/
+out/
+# clangd
+.cache/
+compile_commands.json
+
+# cmake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+#binaries
+*.o
+*.a
+*.so
+*.out
