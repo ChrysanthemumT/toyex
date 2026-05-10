@@ -23,6 +23,14 @@ add_executable(toyex
 target_include_directories(toyex PRIVATE include)
 target_link_libraries(toyex PRIVATE mystd)
 
+add_executable(dgram_requests
+    src/dgram_requests.cpp
+)
+target_include_directories(dgram_requests PRIVATE include)
+target_link_libraries(dgram_requests PRIVATE mystd)
+
+
+
 
 
 

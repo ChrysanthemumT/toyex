@@ -1,15 +1,19 @@
 #include "udp_socket.h"
+#include <arpa/inet.h>
 #include <netdb.h>      // addrinfo, getaddrinfo
 #include <netinet/in.h> // sockaddr_in
 #include <stdint.h>
 #include <sys/socket.h> // socket(), bind() ...
 #include <sys/types.h>
 
+void UDPSocket::recv(void *buf, std::size_t len) {
+    recvfrom(fd_, buf, static_cast<int>(len), 0, nullptr, nullptr);
+}
+
 UDPSocket &UDPSocket::instance() {
     static UDPSocket sock{};
     return sock;
 }
-
 int UDPSocket::get_fd() const { return fd_; }
 
 UDPSocket::UDPSocket() {
@@ -32,6 +36,7 @@ UDPSocket::UDPSocket() {
             perror("bind failed:");
             continue;
         }
+        break;
     }
     if (p == NULL) {
         fprintf(stderr, "failed to bind socket\n");
