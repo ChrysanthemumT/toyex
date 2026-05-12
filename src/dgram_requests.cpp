@@ -1,3 +1,4 @@
+#include "protocol.h"
 #include <arpa/inet.h>
 #include <cstdint>
 #include <iostream>
@@ -7,7 +8,7 @@
 #include <unistd.h>
 
 int main() {
-    char *PORT = "8081";
+    const char *PORT = "8081";
     int rv, fd_;
     struct addrinfo hints, *res, *p;
     memset(&hints, 0, sizeof hints);
@@ -37,9 +38,16 @@ int main() {
     broadcast.sin_port = htons(8080);
     inet_pton(broadcast.sin_family, "127.0.0.1", &broadcast.sin_addr);
     for (;;) {
-        struct message {
-            uint32_t data = 42;
-        } message;
+        uint64_t sequence_num;
+        uint64_t timestamp;
+        uint32_t instrument_id;
+        uint16_t type;
+        uint16_t msg_len;
+        Trade message{
+            .header = {1, 1, 1, 3, sizeof(Trade)},
+            .amount = 1,
+            .price = 1,
+        };
         sendto(fd_, &message, sizeof(message), 0,
                reinterpret_cast<struct sockaddr *>(&broadcast),
                sizeof(broadcast));
