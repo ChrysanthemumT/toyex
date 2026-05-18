@@ -5,7 +5,7 @@ Raw sockets probably.
 Im gonna **try** to use my own ds libs, whenever possible
 
 ## todo
-[ ] sender/receiver
+[x] sender/receiver
 [ ] parser
 [ ]order book
 
