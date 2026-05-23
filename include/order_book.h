@@ -41,8 +41,8 @@ public:
     uint64_t best_buy();
 
 private:
-    mystd::unique_ptr<BST<Limit>> sell;
-    mystd::unique_ptr<BST<Limit>> buy;
-    mystd::unique_ptr<BST<Limit>> low_sell;
-    mystd::unique_ptr<BST<Limit>> highest_buy;
+    mystd::unique_ptr<BST<Limit>> sell_;
+    mystd::unique_ptr<BST<Limit>> buy_;
+    mystd::unique_ptr<Limit> low_sell_;
+    mystd::unique_ptr<Limit> highest_buy_;
 };
