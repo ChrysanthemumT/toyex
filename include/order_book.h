@@ -1,7 +1,7 @@
 #pragma once
 #include "BST.h"
+#include "mystd/allocator.h"
 #include "mystd/map.h"
-#include "mystd/memory.h"
 #include "protocol.h"
 #include <memory_resource>
 
@@ -49,6 +49,8 @@ private:
                                                   sizeof(sellbuffer_)};
     std::pmr::monotonic_buffer_resource pool_buy{buybuffer_,
                                                  sizeof(buybuffer_)};
+    mystd::PoolAllocator<Order, 4096> order_alloc_;
+    mystd::PoolAllocator<Limit, 4096> limit_alloc_;
     BST<Limit> sell_;
     BST<Limit> buy_;
     Limit *low_sell_;
