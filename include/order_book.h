@@ -3,6 +3,7 @@
 #include "mystd/map.h"
 #include "mystd/memory.h"
 #include "protocol.h"
+#include <memory_resource>
 
 // maintain BSTs of buy and sell limits,
 // as well as a map that allows for O(1) deletion,
@@ -41,8 +42,15 @@ public:
     uint64_t best_buy();
 
 private:
-    mystd::unique_ptr<BST<Limit>> sell_;
-    mystd::unique_ptr<BST<Limit>> buy_;
-    mystd::unique_ptr<Limit> low_sell_;
-    mystd::unique_ptr<Limit> highest_buy_;
+    alignas(std::max_align_t) std::byte sellbuffer_[4096];
+    alignas(std::max_align_t) std::byte buybuffer_[4096];
+    std::pmr::monotonic_buffer_resource pool_sell{sellbuffer_,
+                                                  sizeof(sellbuffer_)};
+    std::pmr::monotonic_buffer_resource pool_buy{buybuffer_,
+                                                 sizeof(buybuffer_)};
+    BST<Limit> sell_;
+    BST<Limit> buy_;
+    Limit low_sell_;
+    Limit highest_buy_;
+    std::unordered_map<uint64_t, Limit *> order_map_;
 };

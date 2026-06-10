@@ -68,7 +68,7 @@ void BST<T>::remove(T *value) {
 template <BSTable T>
 T *BST<T>::insert(T *value) {
     if (root_ == nullptr) {
-        return root_ = mystd::make_unique(value);
+        return root_ = value;
     } else {
         return BST::insert(value, root_);
     }
@@ -105,7 +105,7 @@ T *BST<T>::search(T *value) {
 };
 
 template <BSTable T>
-T *BST<T>::search(T value, T *curr) {
+T *BST<T>::search(T *value, T *curr) {
     if (value->price == curr->price) {
         return curr;
     } else {

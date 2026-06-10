@@ -22,7 +22,7 @@ private:
     void min_value(T *curr, T *&mini);
     void max_value(T *curr, T *&maxi);
     T *insert(T *value, T *curr);
-    T *search(T value, T *curr);
+    T *search(T *value, T *curr);
     T *root_;
     uint64_t count_;
     uint64_t volume_;
