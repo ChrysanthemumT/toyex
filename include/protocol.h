@@ -23,7 +23,6 @@ struct AddOrder {
     uint32_t amount;
     char buyorsell;
 };
-
 struct CancelOrder {
     struct Header header;
     uint64_t order_id;

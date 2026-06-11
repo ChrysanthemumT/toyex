@@ -8,10 +8,20 @@
 // maintain BSTs of buy and sell limits,
 // as well as a map that allows for O(1) deletion,
 // and addition of already inserted limits
+
+template <typename Derived>
+struct PoolAllocated {
+    template <std::size_t N, typename... Args>
+    static Derived *create(mystd::PoolAllocator<Derived, N> &alloc,
+                           Args &&...args) {
+        auto mem = alloc.allocate();
+        return new (mem) Derived{std::forward<Args>(args)...};
+    };
+};
 struct Order;
 struct Limit;
 
-struct Limit {
+struct Limit : PoolAllocated<Limit> {
     uint64_t price;
     uint64_t size;
     uint64_t total_volume;
@@ -20,15 +30,25 @@ struct Limit {
     Limit *right = nullptr;
     Order *head = nullptr;
     Order *tail = nullptr;
+    Limit(uint64_t pprice, uint64_t psize, uint64_t ptotal_volume)
+        : price{pprice}, size{psize}, total_volume{ptotal_volume} {}
 };
 
-struct Order {
+struct Order : PoolAllocated<Order> {
     AddOrder order;
     Order *next = nullptr;
     Order *prev = nullptr;
     Limit *parent = nullptr;
+    Order(AddOrder porder, Order *pnext, Order *pprev, Limit *pparent)
+        : order{porder}, next{pnext}, prev{pprev}, parent{pparent} {}
 };
+
 class OrderBook {
+private:
+    static constexpr std::size_t SIZE = 4096;
+    template <typename T>
+    using PoolAlloc = mystd::PoolAllocator<T, SIZE>;
+
 public:
     void clear();
     void process(AddOrder &);
@@ -43,17 +63,11 @@ public:
     uint64_t best_buy();
 
 private:
-    alignas(std::max_align_t) std::byte sellbuffer_[4096];
-    alignas(std::max_align_t) std::byte buybuffer_[4096];
-    std::pmr::monotonic_buffer_resource pool_sell{sellbuffer_,
-                                                  sizeof(sellbuffer_)};
-    std::pmr::monotonic_buffer_resource pool_buy{buybuffer_,
-                                                 sizeof(buybuffer_)};
-    mystd::PoolAllocator<Order, 4096> order_alloc_;
-    mystd::PoolAllocator<Limit, 4096> limit_alloc_;
+    PoolAlloc<Order> order_alloc_;
+    PoolAlloc<Limit> limit_alloc_;
     BST<Limit> sell_;
     BST<Limit> buy_;
-    Limit *low_sell_;
-    Limit *highest_buy_;
+    Limit *low_sell_ = nullptr;
+    Limit *highest_buy_ = nullptr;
     std::unordered_map<uint64_t, Order *> order_map_;
 };

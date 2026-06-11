@@ -1,5 +1,6 @@
 #include "order_book.h"
 #include "protocol.h"
+#include <cstdint>
 
 void OrderBook::process(AddOrder &order) {
     if (order.buyorsell == 'B') {
@@ -21,56 +22,46 @@ void OrderBook::process(CancelOrder &order) {
         limit_alloc_.deallocate(order_struct->parent);
     order_alloc_.destroy(order_struct);
 };
-void OrderBook::process(Trade &) {};
+void OrderBook::process(Trade &order) {};
 
 void OrderBook::clear() {};
 void OrderBook::limit_sell(AddOrder &processed_sell_order) {
     Limit tmp{static_cast<uint64_t>(processed_sell_order.price), 0, 0};
     if (auto *limit_node = sell_.search(&tmp); limit_node != nullptr) {
-        // void *mem = pool_sell.allocate(sizeof(Order), alignof(Order));
-        auto mem = order_alloc_.allocate();
-        limit_node->tail->next = new (mem)
-            Order{processed_sell_order, {}, limit_node->tail, limit_node};
+        limit_node->tail->next =
+            Order::create(order_alloc_, processed_sell_order, nullptr,
+                          limit_node->tail, limit_node);
         limit_node->tail = limit_node->tail->next;
         limit_node->size++;
         limit_node->total_volume += processed_sell_order.amount;
         order_map_[processed_sell_order.order_id] = limit_node->tail;
     } else {
-        // void *mem = pool_sell.allocate(sizeof(Limit), alignof(Limit));
-        // void *mem2 = pool_sell.allocate(sizeof(Order), alignof(Order));
-        auto mem = limit_alloc_.allocate();
-        auto mem2 = order_alloc_.allocate();
-        auto new_limit =
-            new (mem) Limit{static_cast<uint64_t>(processed_sell_order.price),
-                            1, processed_sell_order.amount};
-        new_limit->head =
-            new (mem2) Order{processed_sell_order, {}, {}, new_limit};
+        auto new_limit = Limit::create(
+            limit_alloc_, static_cast<uint64_t>(processed_sell_order.price),
+            static_cast<uint64_t>(1), processed_sell_order.amount);
         new_limit->tail = new_limit->head;
         sell_.insert(new_limit);
+        new_limit->head = Order::create(order_alloc_, processed_sell_order,
+                                        nullptr, nullptr, new_limit);
         order_map_[processed_sell_order.order_id] = new_limit->head;
     }
 };
 void OrderBook::limit_buy(AddOrder &processed_buy_order) {
     Limit tmp{static_cast<uint64_t>(processed_buy_order.price), 0, 0};
     if (auto *limit_node = buy_.search(&tmp); limit_node != nullptr) {
-        // void *mem = pool_buy.allocate(sizeof(Order), alignof(Order));
-        auto mem = order_alloc_.allocate();
-        limit_node->tail->next = new (mem)
-            Order{processed_buy_order, {}, limit_node->tail, limit_node};
+        limit_node->tail->next =
+            Order::create(order_alloc_, processed_buy_order, nullptr,
+                          limit_node->tail, limit_node);
         limit_node->tail = limit_node->tail->next;
         limit_node->size++;
         limit_node->total_volume += processed_buy_order.amount;
         order_map_[processed_buy_order.order_id] = limit_node->tail;
     } else {
-        // void *mem = pool_buy.allocate(sizeof(Limit), alignof(Limit));
-        // void *mem2 = pool_buy.allocate(sizeof(Order), alignof(Order));
-        auto mem = limit_alloc_.allocate();
-        auto mem2 = order_alloc_.allocate();
-        auto new_limit =
-            new (mem) Limit{static_cast<uint64_t>(processed_buy_order.price), 1,
-                            processed_buy_order.amount};
-        new_limit->head =
-            new (mem2) Order{processed_buy_order, {}, {}, new_limit};
+        auto new_limit = Limit::create(
+            limit_alloc_, static_cast<uint64_t>(processed_buy_order.price),
+            static_cast<uint64_t>(1), processed_buy_order.amount);
+        new_limit->head = Order::create(order_alloc_, processed_buy_order,
+                                        nullptr, nullptr, new_limit);
         new_limit->tail = new_limit->head;
         buy_.insert(new_limit);
         order_map_[processed_buy_order.order_id] = new_limit->tail;
